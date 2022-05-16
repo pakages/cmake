@@ -1,0 +1,31 @@
+name: Pakages Build and Deploy
+on:
+  workflow_dispatch: []
+  pull_request: []
+  push:
+    branches:
+      - main 
+ 
+jobs:
+  build:
+    permissions:
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        container: [["20.04"], ["22.04"]]
+
+    runs-on: ubuntu-latest
+    container: ghcr.io/syspack/pakages-ubuntu-${{ matrix.container[0] }}:latest
+    name: Pakages Build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build Package
+        env:
+          deploy: ${{ github.event_name != 'pull_request' }}
+          package: cmake
+          user: ${{ github.actor }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          uri: ghcr.io/pakages
+        run: /entrypoint.sh 
